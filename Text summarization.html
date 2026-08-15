@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced AI Text Summarizer</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+        color: #f8fafc;
+        padding: 25px;
+    }
+
+    .container {
+        max-width: 1250px;
+        margin: auto;
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    header h1 {
+        font-size: 38px;
+        margin-bottom: 10px;
+    }
+
+    header p {
+        color: #cbd5e1;
+        font-size: 16px;
+    }
+
+    .dashboard {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .card {
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid #475569;
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+    }
+
+    .card h2 {
+        margin-bottom: 15px;
+        font-size: 21px;
+    }
+
+    textarea {
+        width: 100%;
+        height: 350px;
+        resize: vertical;
+        border: 1px solid #64748b;
+        border-radius: 12px;
+        background: #020617;
+        color: white;
+        padding: 16px;
+        font-size: 16px;
+        line-height: 1.6;
+        outline: none;
+    }
+
+    textarea:focus {
+        border-color: #38bdf8;
+    }
+
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+        align-items: center;
+    }
+
+    button {
+        border: none;
+        padding: 11px 17px;
+        border-radius: 9px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+    }
+
+    .primary {
+        background: #0ea5e9;
+        color: white;
+    }
+
+    .secondary {
+        background: #475569;
+        color: white;
+    }
+
+    .danger {
+        background: #dc2626;
+        color: white;
+    }
+
+    select {
+        padding: 10px;
+        border-radius: 8px;
+        background: #020617;
+        color: white;
+        border: 1px solid #64748b;
+    }
+
+    .summary {
+        min-height: 350px;
+        background: #020617;
+        border: 1px solid #475569;
+        border-radius: 12px;
+        padding: 18px;
+        line-height: 1.8;
+        font-size: 16px;
+        overflow-y: auto;
+    }
+
+    .placeholder {
+        color: #64748b;
+        text-align: center;
+        padding-top: 130px;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .stat {
+        background: #1e293b;
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        border: 1px solid #475569;
+    }
+
+    .stat strong {
+        display: block;
+        font-size: 24px;
+        color: #38bdf8;
+        margin-bottom: 5px;
+    }
+
+    .keywords {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+    }
+
+    .keyword {
+        background: #075985;
+        padding: 7px 11px;
+        border-radius: 20px;
+        font-size: 13px;
+    }
+
+    .progress-container {
+        margin-top: 15px;
+        background: #334155;
+        height: 10px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress {
+        height: 100%;
+        width: 0%;
+        background: #22c55e;
+        transition: width 0.5s;
+    }
+
+    .loading {
+        display: none;
+        margin-top: 10px;
+        color: #38bdf8;
+    }
+
+    footer {
+        text-align: center;
+        margin-top: 25px;
+        color: #94a3b8;
+    }
+
+    @media(max-width: 850px) {
+        .dashboard {
+            grid-template-columns: 1fr;
+        }
+
+        .stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        header h1 {
+            font-size: 28px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <h1>🤖 Advanced AI Text Summarizer</h1>
+    <p>Extractive NLP-based text summarization with keyword and statistical analysis</p>
+</header>
+
+<div class="dashboard">
+
+    <!-- INPUT -->
+    <div class="card">
+
+        <h2>📝 Input Text</h2>
+
+        <textarea id="inputText"
+        placeholder="Paste a long article, news report, research content, or any text here..."></textarea>
+
+        <div class="controls">
+
+            <button class="primary" onclick="summarize()">
+                ✨ Generate Summary
+            </button>
+
+            <button class="secondary" onclick="loadExample()">
+                📄 Example
+            </button>
+
+            <button class="danger" onclick="clearAll()">
+                🗑 Clear
+            </button>
+
+            <label>
+                Summary:
+                <select id="summaryLength">
+                    <option value="20">20%</option>
+                    <option value="30" selected>30%</option>
+                    <option value="40">40%</option>
+                    <option value="50">50%</option>
+                </select>
+            </label>
+
+        </div>
+
+        <div class="loading" id="loading">
+            🔄 Analyzing text using NLP algorithms...
+        </div>
+
+    </div>
+
+
+    <!-- OUTPUT -->
+    <div class="card">
+
+        <h2>📌 Generated Summary</h2>
+
+        <div id="summary" class="summary">
+
+            <div class="placeholder">
+                Your intelligent summary will appear here.
+            </div>
+
+        </div>
+
+        <div class="controls">
+
+            <button class="primary" onclick="copySummary()">
+                📋 Copy
+            </button>
+
+            <button class="secondary" onclick="downloadSummary()">
+                ⬇ Download
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- STATISTICS -->
+
+<div class="card" style="margin-top:20px;">
+
+    <h2>📊 Text Analysis</h2>
+
+    <div class="stats">
+
+        <div class="stat">
+            <strong id="wordCount">0</strong>
+            Words
+        </div>
+
+        <div class="stat">
+            <strong id="sentenceCount">0</strong>
+            Sentences
+        </div>
+
+        <div class="stat">
+            <strong id="summaryWords">0</strong>
+            Summary Words
+        </div>
+
+        <div class="stat">
+            <strong id="compression">0%</strong>
+            Compression
+        </div>
+
+    </div>
+
+    <h3 style="margin-top:25px;">
+        🔑 Important Keywords
+    </h3>
+
+    <div class="keywords" id="keywords">
+        No keywords yet.
+    </div>
+
+    <h3 style="margin-top:25px;">
+        📈 Summary Compression
+    </h3>
+
+    <div class="progress-container">
+        <div class="progress" id="progress"></div>
+    </div>
+
+</div>
+
+<footer>
+    Advanced Text Summarization System | NLP Project | HTML + CSS + JavaScript
+</footer>
+
+</div>
+
+
+<script>
+
+/* ---------------------------------------
+   STOP WORDS
+--------------------------------------- */
+
+const stopWords = new Set([
+
+"the","is","are","was","were","a","an","and","or","but",
+"of","to","in","on","for","with","at","by","from","as",
+"this","that","these","those","it","its","be","been",
+"has","have","had","will","would","can","could","should",
+"may","might","must","do","does","did","not","no",
+"we","you","they","he","she","them","their","our",
+"your","his","her","i","me","my","mine","there","here",
+"than","then","also","very","more","most","such","into",
+"about","over","after","before","between","during",
+"while","where","when","which","who","what","how",
+"all","any","each","many","some","other","another"
+
+]);
+
+
+/* ---------------------------------------
+   TOKENIZE WORDS
+--------------------------------------- */
+
+function tokenize(text) {
+
+    return text
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9\s]/g, " ")
+        .split(/\s+/)
+        .filter(word => word.length > 1);
+
+}
+
+
+/* ---------------------------------------
+   SENTENCE SPLITTER
+--------------------------------------- */
+
+function splitSentences(text) {
+
+    return text
+        .replace(/\s+/g, " ")
+        .match(/[^.!?]+[.!?]+|[^.!?]+$/g)
+        ?.map(s => s.trim())
+        .filter(s => s.length > 10) || [];
+
+}
+
+
+/* ---------------------------------------
+   WORD FREQUENCY
+--------------------------------------- */
+
+function calculateFrequency(words) {
+
+    const frequency = {};
+
+    words.forEach(word => {
+
+        if (!stopWords.has(word)) {
+
+            frequency[word] =
+                (frequency[word] || 0) + 1;
+
+        }
+
+    });
+
+    return frequency;
+
+}
+
+
+/* ---------------------------------------
+   SENTENCE SCORE
+--------------------------------------- */
+
+function scoreSentence(sentence, frequency, position, totalSentences) {
+
+    const words = tokenize(sentence);
+
+    if (words.length === 0)
+        return 0;
+
+    let score = 0;
+
+    /* Word frequency score */
+
+    words.forEach(word => {
+
+        if (frequency[word]) {
+
+            score += frequency[word];
+
+        }
+
+    });
+
+
+    /* Length normalization */
+
+    score = score / Math.sqrt(words.length);
+
+
+    /* Position importance */
+
+    if (position === 0)
+        score += 5;
+
+    if (position === 1)
+        score += 3;
+
+    if (position === totalSentences - 1)
+        score += 2;
+
+
+    /* Keyword density */
+
+    const importantWords =
+        words.filter(w => !stopWords.has(w)).length;
+
+    if (importantWords > 8)
+        score += 2;
+
+
+    /* Numbers often indicate useful information */
+
+    if (/\d/.test(sentence))
+        score += 2;
+
+
+    return score;
+
+}
+
+
+/* ---------------------------------------
+   MAIN SUMMARIZER
+--------------------------------------- */
+
+function summarize() {
+
+    const text =
+        document.getElementById("inputText").value.trim();
+
+    if (!text) {
+
+        alert("Please enter some text first.");
+        return;
+
+    }
+
+
+    document.getElementById("loading").style.display = "block";
+
+
+    setTimeout(() => {
+
+        const sentences =
+            splitSentences(text);
+
+        const words =
+            tokenize(text);
+
+        if (sentences.length < 2) {
+
+            document.getElementById("summary").innerHTML =
+                "<p>" + text + "</p>";
+
+            document.getElementById("loading").style.display =
+                "none";
+
+            return;
+
+        }
+
+
+        /* Frequency calculation */
+
+        const frequency =
+            calculateFrequency(words);
+
+
+        /* Score every sentence */
+
+        const scoredSentences =
+            sentences.map((sentence, index) => ({
+
+                sentence: sentence,
+
+                score: scoreSentence(
+                    sentence,
+                    frequency,
+                    index,
+                    sentences.length
+                ),
+
+                index: index
+
+            }));
+
+
+        /* Sort by score */
+
+        scoredSentences.sort(
+            (a,b) => b.score - a.score
+        );
+
+
+        /* Summary percentage */
+
+        const percentage =
+            parseInt(
+                document.getElementById("summaryLength").value
+            );
+
+
+        let numberOfSentences =
+            Math.ceil(
+                sentences.length * percentage / 100
+            );
+
+
+        numberOfSentences =
+            Math.max(1,
+            Math.min(numberOfSentences, sentences.length));
+
+
+        /* Select top sentences */
+
+        const selected =
+            scoredSentences
+                .slice(0, numberOfSentences)
+                .sort((a,b) => a.index - b.index);
+
+
+        const summaryText =
+            selected
+                .map(item => item.sentence)
+                .join(" ");
+
+
+        /* Display */
+
+        document.getElementById("summary").innerHTML =
+            "<p>" + summaryText + "</p>";
+
+
+        /* Statistics */
+
+        updateStatistics(
+            text,
+            summaryText,
+            words,
+            sentences
+        );
+
+
+        /* Keywords */
+
+        generateKeywords(frequency);
+
+
+        document.getElementById("loading").style.display =
+            "none";
+
+    }, 500);
+
+}
+
+
+/* ---------------------------------------
+   STATISTICS
+--------------------------------------- */
+
+function updateStatistics(
+    original,
+    summary,
+    words,
+    sentences
+) {
+
+    const summaryWordCount =
+        tokenize(summary).length;
+
+
+    document.getElementById("wordCount")
+        .textContent = words.length;
+
+
+    document.getElementById("sentenceCount")
+        .textContent = sentences.length;
+
+
+    document.getElementById("summaryWords")
+        .textContent = summaryWordCount;
+
+
+    const compression =
+        words.length > 0
+        ? Math.round(
+            (1 - summaryWordCount / words.length) * 100
+          )
+        : 0;
+
+
+    document.getElementById("compression")
+        .textContent = compression + "%";
+
+
+    document.getElementById("progress")
+        .style.width =
+        Math.max(0, Math.min(100, compression)) + "%";
+
+}
+
+
+/* ---------------------------------------
+   KEYWORD EXTRACTION
+--------------------------------------- */
+
+function generateKeywords(frequency) {
+
+    const sorted =
+        Object.entries(frequency)
+        .sort((a,b) => b[1] - a[1])
+        .slice(0, 12);
+
+
+    const container =
+        document.getElementById("keywords");
+
+
+    container.innerHTML = "";
+
+
+    if (sorted.length === 0) {
+
+        container.innerHTML =
+            "No keywords found.";
+
+        return;
+
+    }
+
+
+    sorted.forEach(([word,count]) => {
+
+        const span =
+            document.createElement("span");
+
+        span.className = "keyword";
+
+        span.textContent =
+            word + " (" + count + ")";
+
+        container.appendChild(span);
+
+    });
+
+}
+
+
+/* ---------------------------------------
+   COPY
+--------------------------------------- */
+
+function copySummary() {
+
+    const summary =
+        document.getElementById("summary")
+        .innerText;
+
+
+    if (!summary ||
+        summary.includes("will appear here")) {
+
+        alert("Generate a summary first.");
+        return;
+
+    }
+
+
+    navigator.clipboard.writeText(summary)
+        .then(() => {
+
+            alert("Summary copied successfully!");
+
+        });
+
+}
+
+
+/* ---------------------------------------
+   DOWNLOAD
+--------------------------------------- */
+
+function downloadSummary() {
+
+    const summary =
+        document.getElementById("summary")
+        .innerText;
+
+
+    if (!summary ||
+        summary.includes("will appear here")) {
+
+        alert("Generate a summary first.");
+        return;
+
+    }
+
+
+    const blob =
+        new Blob(
+            [summary],
+            {type: "text/plain"}
+        );
+
+
+    const url =
+        URL.createObjectURL(blob);
+
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+        "AI_Summary.txt";
+
+    link.click();
+
+
+    URL.revokeObjectURL(url);
+
+}
+
+
+/* ---------------------------------------
+   EXAMPLE TEXT
+--------------------------------------- */
+
+function loadExample() {
+
+    const example = `Artificial intelligence is rapidly transforming many industries around the world. 
+Machine learning allows computers to learn from large amounts of data and make predictions without being explicitly programmed. 
+Natural language processing enables computers to understand and analyze human language. 
+AI is being used in healthcare to detect diseases, support doctors, and analyze medical images. 
+In education, artificial intelligence can provide personalized learning experiences for students. 
+Businesses use AI to automate repetitive tasks, improve customer service, detect fraud, and analyze market trends. 
+However, the development of artificial intelligence also creates challenges related to privacy, security, employment, and ethical decision making. 
+Researchers and governments are working to create responsible AI systems that are transparent, safe, fair, and beneficial to society. 
+As technology continues to advance, artificial intelligence is expected to become an increasingly important part of everyday life.`;
+
+    document.getElementById("inputText").value =
+        example;
+
+}
+
+
+/* ---------------------------------------
+   CLEAR
+--------------------------------------- */
+
+function clearAll() {
+
+    document.getElementById("inputText").value = "";
+
+    document.getElementById("summary").innerHTML =
+        `<div class="placeholder">
+            Your intelligent summary will appear here.
+        </div>`;
+
+    document.getElementById("wordCount")
+        .textContent = "0";
+
+    document.getElementById("sentenceCount")
+        .textContent = "0";
+
+    document.getElementById("summaryWords")
+        .textContent = "0";
+
+    document.getElementById("compression")
+        .textContent = "0%";
+
+    document.getElementById("keywords").innerHTML =
+        "No keywords yet.";
+
+    document.getElementById("progress")
+        .style.width = "0%";
+
+}
+
+
+/* ---------------------------------------
+   KEYBOARD SHORTCUT
+--------------------------------------- */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.ctrlKey && event.key === "Enter") {
+
+            summarize();
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
